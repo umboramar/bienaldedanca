@@ -1,0 +1,27 @@
+name: Deploy Bienal
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Atualizar site na Hostinger
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port: ${{ secrets.SSH_PORT }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /home/u160128851/bienaldedanca-github
+            git fetch origin main
+            git reset --hard origin/main
+
+            cp index.html /home/u160128851/public_html/
+            cp bienal-desktop.jpg /home/u160128851/public_html/
+            cp bienal-mobile.png /home/u160128851/public_html/
