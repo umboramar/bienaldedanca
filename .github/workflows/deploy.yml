@@ -26,5 +26,8 @@ jobs:
             test -s index.html
             test -d /home/u160128851/public_html
 
+            sed -i "s|imprensa:''|imprensa:'https://drive.google.com/drive/folders/1hFytsu1IK3QkKcZUWrH7uzW41BCECvLa'|" index.html
+            grep -q '1hFytsu1IK3QkKcZUWrH7uzW41BCECvLa' index.html
+
             cp index.html /home/u160128851/public_html/.index.html.tmp
             mv /home/u160128851/public_html/.index.html.tmp /home/u160128851/public_html/index.html
