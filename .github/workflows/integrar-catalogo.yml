@@ -1,0 +1,73 @@
+name: Integrar catalogo 2026
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/integrar_catalogo_bienal.py'
+      - '.github/workflows/integrar-catalogo.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: integracao-catalogo-bienal
+  cancel-in-progress: false
+
+jobs:
+  integrar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Baixar codigo do site
+        uses: actions/checkout@v4
+
+      - name: Incorporar pagina e botao do catalogo
+        run: python3 scripts/integrar_catalogo_bienal.py
+
+      - name: Conferir links e elementos
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          text = Path('index.html').read_text(encoding='utf-8')
+          assert text.count('views.catalogo=') == 1
+          assert text.count("go('catalogo')") == 3
+          assert 'BAIXAR CATÁLOGO (PDF)' in text
+          assert '1Tdqje4TkPe0elWxxHsoxrh1Z2JhCafNM' in text
+          print('Verificacoes do catalogo concluídas')
+          PY
+
+      - name: Versionar index atualizado
+        id: commit
+        shell: bash
+        run: |
+          if git diff --quiet -- index.html; then
+            echo 'updated=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Integrar catalogo 2026 com visualizacao e download'
+          git push origin HEAD:main
+          echo 'updated=true' >> "$GITHUB_OUTPUT"
+
+      - name: Publicar site atualizado na Hostinger
+        if: steps.commit.outputs.updated == 'true'
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port: ${{ secrets.SSH_PORT }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -eu
+            cd /home/u160128851/bienaldedanca-github
+            git fetch origin main
+            git reset --hard origin/main
+            test -s index.html
+            grep -q 'views.catalogo=' index.html
+            cp index.html /home/u160128851/public_html/.index.html.tmp
+            mv /home/u160128851/public_html/.index.html.tmp /home/u160128851/public_html/index.html
