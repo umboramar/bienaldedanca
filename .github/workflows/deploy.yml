@@ -24,6 +24,7 @@ jobs:
             git reset --hard origin/main
 
             test -s index.html
+            sha256sum index.html
             test -d /home/u160128851/public_html
 
             cp index.html /home/u160128851/public_html/.index.html.tmp
