@@ -1,0 +1,34 @@
+name: Consolidar HTML da Bienal
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.bienal-upload/**'
+
+permissions:
+  contents: write
+
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar os arquivos do repositorio
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Reconstruir e validar index.html
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(find .bienal-upload -maxdepth 1 -name 'chunk-*.part' | wc -l)" -eq 22
+          cat .bienal-upload/chunk-*.part > index.html.tmp
+          echo '08dd2286f19e3c6e90060e57b01fce96a108706872d3506eb32fe3d5933e51ac  index.html.tmp' | sha256sum --check -
+          mv index.html.tmp index.html
+          test -s index.html
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -r .bienal-upload
+          git add index.html
+          git commit -m "Publica Bienal com layout de novembro e catalogo anterior"
+          git push origin HEAD:main
