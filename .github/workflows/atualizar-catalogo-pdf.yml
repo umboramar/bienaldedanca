@@ -40,7 +40,7 @@ jobs:
           python - <<'PY'
           import gdown
           url = "https://drive.google.com/file/d/1Jvvt4f0ok2JyBlMrfAK0K_Awt4_236CI/view?usp=sharing"
-          result = gdown.download(url=url, output="catalogo.pdf", fuzzy=True, quiet=False)
+          result = gdown.download(id="1Jvvt4f0ok2JyBlMrfAK0K_Awt4_236CI", output="catalogo.pdf", quiet=False)
           if not result:
               raise SystemExit("Falha ao baixar o catalogo do Drive")
           PY
